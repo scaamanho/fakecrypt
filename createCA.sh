@@ -22,6 +22,7 @@ if [ -f "$FILE" ]; then
 fi
 
 # Create estucture directory
+
 mkdir -p ${ROOT_CA_DIR}/{certs,db,private}
 chmod 700 ${ROOT_CA_DIR}/private
 touch ${ROOT_CA_DIR}/db/db
@@ -32,7 +33,7 @@ chmod 700 ${CA_DIR}/private
 touch ${CA_DIR}/db/db
 touch ${CA_DIR}/db/db.attr
 
-mkdir 
+mkdir ${CERTS_DIR}
 
 
 countryName="ME"
@@ -155,13 +156,15 @@ authorityKeyIdentifier  = keyid:always
 EOF
 
 cat > ${CERTS_DIR}/CA.conf << EOF
+[ ca ]
+default_ca = the_ca
 [ the_ca ]
 dir = ${CA_DIR}
 private_key = \$dir/private/CA.key
 certificate = \$dir/CA.crt
-new_certs_dir = $dir/certs
-serial = $dir/db/crt.srl
-database = $dir/db/db
+new_certs_dir = \$dir/certs
+serial = \$dir/db/crt.srl
+database = \$dir/db/db
 unique_subject = no
 default_md = sha256
 policy = any_pol

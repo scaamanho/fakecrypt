@@ -12,7 +12,7 @@ fi
 # Check if exist CA 
 # Check if exist previous CA
 FILE=./${CERTS_DIR}/CA.conf
-if [ -f "$FILE" ]; then
+if [ ! -f "$FILE" ]; then
   read -p "CA Authority don't exist. Create a new One (Y/n)" overwrite
 
   if [ "$overwrite" = "n" ]
