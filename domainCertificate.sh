@@ -1,16 +1,33 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ "$#" -ne 1 ]
+DOMAIN=vcap.me
+CERTS_DIR=certs
+
+read -p "Domain Name [${DOMAIN}]:" inputValue
+if [ "$inputValue" != "" ]
 then
-  echo "Usage: Must supply a domain"
-  exit 1
+  DOMAIN=$inputValue
 fi
 
-DOMAIN=$1
+# Check if exist CA 
+# Check if exist previous CA
+FILE=./${CERTS_DIR}/CA.conf
+if [ -f "$FILE" ]; then
+  read -p "CA Authority don't exist. Create a new One (Y/n)" overwrite
 
-mkdir -p certs/${DOMAIN}
+  if [ "$overwrite" = "n" ]
+  then
+    echo "Can't Create ${DOMAIN} certificate."
+    exit 0
+  else
+    ./createCA.sh
+  fi
+fi
 
-cat > ./certs/${DOMAIN}/${DOMAIN}-csr.conf << EOF
+
+mkdir -p ${CERTS_DIR}/${DOMAIN}
+
+cat > ./${CERTS_DIR}/${DOMAIN}/${DOMAIN}-csr.conf << EOF
 [ req ]
 default_bits = 2048
 encrypt_key = no
@@ -34,18 +51,20 @@ DNS.3 = $DOMAIN
 EOF
 
 # create a certificate signing request
-openssl req -new -config certs/${DOMAIN}/${DOMAIN}-csr.conf -out certs/${DOMAIN}/${DOMAIN}.csr \
-        -keyout certs/${DOMAIN}/${DOMAIN}.key
+openssl req -new -config ${CERTS_DIR}/${DOMAIN}/${DOMAIN}-csr.conf -out ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.csr \
+        -keyout ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.key
 
 # sign the server certificate in the request with the intermediate CA certificate
 openssl ca -config certs/CA.conf -days 36500 -create_serial \
-    -in certs/${DOMAIN}/${DOMAIN}.csr -out certs/${DOMAIN}/${DOMAIN}.crt -extensions leaf_ext -notext
+    -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.csr -out certs/${DOMAIN}/${DOMAIN}.crt -extensions leaf_ext -notext
 
 # Link certificates together to have the certificate chain in one file
-cat certs/${DOMAIN}/${DOMAIN}.crt CA/CA.pem >certs/${DOMAIN}/${DOMAIN}.pem
+cat ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt CA/CA.pem >${CERTS_DIR}/${DOMAIN}/${DOMAIN}.pem
 
 # check what information the certificate contains
 openssl x509 -in certs/${DOMAIN}/${DOMAIN}.crt -text -noout
 
 # make sure that the DNS entries for SAN are correct
 openssl x509 -in certs/${DOMAIN}/${DOMAIN}.crt -text -noout | grep DNS
+
+echo "All cerficate files are in certs/${DOMAIN} folder"

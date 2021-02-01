@@ -19,5 +19,56 @@ This script will ask for needed values to customize your CA.
 If you use enter, will be use de default values
 
 ```sh
-createCA.sh
+$>./createCA.sh
+
+Country Name [ME]:
+City Name [Podgorica]:
+Root Common Name [Fake Root CA]:
+CA Organization Name [Fake Networks]:
+CA Name [Signatures Department]:
+CA Common Name [Fake Networks CA]:
+
+Creating ROOT CA CERTIFICATE
+....
+Creating INTERMEDIATE CA CERTIFICATE
+....
+
 ```
+
+## Sing your own domains certificates
+
+Once you run `createCA.sh` now you can create your domain certificates for all domains that you want.
+
+For that run `domainCertificate.sh` this will pront for domain name, and all your files and certificates needed for this domain will be under `certs/domain-name.ext`. If any domain values is provider will be use default domain `vcap.me`
+
+```sh
+$>./domainCertificate.sh
+Domain Name [vcap.me]:
+Generating a RSA private key
+...
+                DNS:*.vcap.me, DNS:*.m.vcap.me, DNS:vcap.me
+All cerficate files are in certs/vcap.me folder
+```
+
+This script allow domain name use subdomains
+
+### Domains that point to 127.0.0.1
+
+These domains point to localhost
+
+* [*.]localtest.me
+* [*.]127-0-0-1.org.uk
+* [*.]vcap.me
+* [*.]yoogle.com
+* [*.]lvh.me
+* [*.]lacolhost.com
+* domaincontrol.com
+* [*.]127.0.0.1.xip.io
+
+### Custom Domains
+
+If you need customize your own domains you, can register domains or subdomains for free in:
+
+* <https://my.freenom.com/>
+* <https://www.dynu.com/>
+* <https://www.duckdns.org/>

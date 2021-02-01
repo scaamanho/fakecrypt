@@ -3,9 +3,10 @@
 # DEFINE DEFAULT VALUES
 ROOT_CA_DIR=rootCA
 CA_DIR=CA
+CERTS_DIR=certs
 
 
-# Check if exist CA
+# Check if exist previous CA
 FILE=./rootCA/private/rootCA.key
 if [ -f "$FILE" ]; then
   read -p "A previous CA allreay exist. This will delete previous CA. Continue? (y/N)" overwrite
@@ -31,14 +32,16 @@ chmod 700 ${CA_DIR}/private
 touch ${CA_DIR}/db/db
 touch ${CA_DIR}/db/db.attr
 
+mkdir 
 
-countryName="GA"
-localityName="Acra"
-commonName="Fake Networks CA"
 
-caOrganizationName="Fake Networks1"
+countryName="ME"
+localityName="Podgorica"
+commonName="Fake Root CA"
+
+caOrganizationName="Fake Networks"
 caOrganizationalUnitName="Signatures Department"
-caCommonName="Fake HTTPS Proxy CA"
+caCommonName="Fake Networks CA"
 
 # ASK CONFIG VALUES
 read -p "Country Name [${countryName}]" inputValue
@@ -147,6 +150,41 @@ emailAddress = optional
 [ ca_ext ]
 keyUsage                = critical,keyCertSign,cRLSign
 basicConstraints        = critical,CA:true
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid:always
+EOF
+
+cat > ${CERTS_DIR}/CA.conf << EOF
+[ the_ca ]
+dir = ${CA_DIR}
+private_key = \$dir/private/CA.key
+certificate = \$dir/CA.crt
+new_certs_dir = $dir/certs
+serial = $dir/db/crt.srl
+database = $dir/db/db
+unique_subject = no
+default_md = sha256
+policy = any_pol
+email_in_dn = no
+copy_extensions = copy
+[ any_pol ]
+domainComponent = optional
+countryName = optional
+stateOrProvinceName = optional
+localityName = optional
+organizationName = optional
+organizationalUnitName = optional
+commonName = optional
+emailAddress = optional
+[ leaf_ext ]
+keyUsage = critical,digitalSignature,keyEncipherment
+basicConstraints = CA:false
+extendedKeyUsage = serverAuth,clientAuth
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always
+[ ca_ext ]
+keyUsage                = critical,keyCertSign,cRLSign
+basicConstraints        = critical,CA:true,pathlen:0
 subjectKeyIdentifier    = hash
 authorityKeyIdentifier  = keyid:always
 EOF
