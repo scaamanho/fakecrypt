@@ -68,7 +68,6 @@ basicConstraints        = critical,CA:true
 subjectKeyIdentifier    = hash
 authorityKeyIdentifier  = keyid:always
 EOF
-
 }
 
 function create_ca_cfg()
@@ -209,14 +208,16 @@ function create_ca ()
   create_root_cfg
   create_ca_cfg
 
-  echo "Creating ROOT CA CERTIFICATE"
   # CREATE ROOT CA CERTIFICATE
+  echo "Creating ROOT CA CERTIFICATE"
+  echo "------------------------------------------------------------------"
   openssl req -x509 -sha256 -days 36500 -newkey rsa:3072 \
       -config ${ROOT_CA_DIR}/root-csr.conf -keyout ${ROOT_CA_DIR}/private/rootCA.key \
       -out ${ROOT_CA_DIR}/rootCA.crt
   # SHOW CERTIFICATE CREATED
   openssl x509 -in ${ROOT_CA_DIR}/rootCA.crt -text -noout   
   echo "Creating INTERMEDIATE CA CERTIFICATE"
+  echo "------------------------------------------------------------------"
   #  create a certificate signing request
   openssl req -new -config ${CA_DIR}/CA-csr.conf -out ${CA_DIR}/CA.csr \
           -keyout ${CA_DIR}/private/CA.key
@@ -225,9 +226,6 @@ function create_ca ()
       -in ${CA_DIR}/CA.csr -out ${CA_DIR}/CA.crt -extensions ca_ext -notext
   # Link certificates together to have the certificate chain in one file
   cat ${CA_DIR}/CA.crt ${ROOT_CA_DIR}/rootCA.crt >${CA_DIR}/CA.pem
-
-  # TODO: Log where ca certificate is
-
 }
 
 
@@ -250,22 +248,19 @@ function create_cert()
     fi
   fi
 
+  # Create directory and config file
   mkdir -p ${CERTS_DIR}/${DOMAIN}
   create_domain_cfg
-
   # create a certificate signing request
   openssl req -new -config ${CERTS_DIR}/${DOMAIN}/${DOMAIN}-csr.conf -out ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.csr \
           -keyout ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.key
-
   # sign the server certificate in the request with the intermediate CA certificate
   openssl ca -config ${CERTS_DIR}/CA.conf -days 36500 -create_serial \
       -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.csr -out ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -extensions leaf_ext -notext
-
   # Link certificates together to have the certificate chain in one file
   cat ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt ${CA_DIR}/CA.pem >${CERTS_DIR}/${DOMAIN}/${DOMAIN}.pem
 
   # check what information the certificate contains
-  
   read_value "Show Certificate Info (y/N)?" "N"
   if [ "${READ_VALUE}" = "y" ]
   then 
@@ -275,7 +270,6 @@ function create_cert()
     openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout  
   fi
   
-
   # make sure that the DNS entries for SAN are correct
   echo 
   echo "DNS registered in Domain Certificate:"
@@ -290,9 +284,17 @@ function _header ()
   echo "#############################"
   #echo " Set domain name to create certificate, import CA certificate and enjoy your thrusted domain"
   echo
-  #TODO:
+  #TODO: Customizar Header
 }
 
+function _sumary ()
+{
+  # Sumary
+  echo "------------------------------------------------------------------"
+  echo "rootCA certificate files are in ${ROOT_CA_DIR} folder [rootCA.crt]"
+  echo "All Server cerficate files are in ${CERTS_DIR}/${DOMAIN} folder"
+  echo "------------------------------------------------------------------"
+}
 
 ########################
 #         MAIN         #
@@ -305,8 +307,4 @@ then
   exit 0
 fi
 create_cert
-
-echo "------------------------------------------------------------------"
-echo "rootCA certificate files are in ${ROOT_CA_DIR} folder [rootCA.crt]"
-echo "All Server cerficate files are in ${CERTS_DIR}/${DOMAIN} folder"
-echo "------------------------------------------------------------------"
+_sumary
