@@ -9,6 +9,13 @@ Becoming in your own CA, you can sing several certificates for your diferents do
 
 TODO: Image
 
+
+## TL;TR
+
+```sh
+./createCertificate.sh
+```
+
 ## Create your own CA
 
 This step mus be only runned once, and is highly recomendable keep a backup of directories `rootCA` and `CA` due is where your CA certificates resides.
@@ -39,10 +46,10 @@ Creating INTERMEDIATE CA CERTIFICATE
 
 Once you run `createCA.sh` now you can create your domain certificates for all domains that you want.
 
-For that run `domainCertificate.sh` this will pront for domain name, and all your files and certificates needed for this domain will be under `certs/domain-name.ext`. If any domain values is provider will be use default domain `vcap.me`
+For that run `domainCertificate.sh` this will pront for domain name, and all your files and certificates needed for this domain will be under `certs/domain-name.ext`. If any domain name are provided, the default domain `vcap.me` will be used.
 
 ```sh
-$>./domainCertificate.sh
+$>./createCertificate.sh
 Domain Name [vcap.me]:
 Generating a RSA private key
 ...
@@ -52,9 +59,10 @@ All cerficate files are in certs/vcap.me folder
 
 This script allow domain name use subdomains
 
+
 ### Domains that point to 127.0.0.1
 
-These domains point to localhost
+These domains point to localhost, and can be used generate your local machine certificates
 
 * [*.]localtest.me
 * [*.]127-0-0-1.org.uk
@@ -67,8 +75,38 @@ These domains point to localhost
 
 ### Custom Domains
 
-If you need customize your own domains you, can register domains or subdomains for free in:
+If you need customize your own domains with multiple machines in a local network, you can register domains or subdomains for free in:
 
 * <https://my.freenom.com/>
 * <https://www.dynu.com/>
-* <https://www.duckdns.org/>
+* <https://www.duckdns.org/> - Can't use subdomains feature.
+
+and point them to your machines.
+
+## Import Certificate Authorities in your System
+[TODO:]
+### Debian/Ubuntu
+
+### CentOS/RHEL
+
+### Windows
+
+### Android
+
+### Mac
+
+### iOS
+
+## Config your domain certificate in your server
+[TODO:]
+### NGINX
+
+
+
+## How to customize FakeCrypt
+
+[TODO:]
+
+## Backup your data
+
+[TODO:]
