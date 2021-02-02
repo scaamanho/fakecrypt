@@ -13,20 +13,21 @@ TODO: Image
 ## TL;TR
 
 ```sh
-./createCertificate.sh
+./fakecrypt.sh
 ```
+
+All your certificates files will be store in `$HOME/fakecrypt/` directory
 
 ## Create your own CA
 
-This step mus be only runned once, and is highly recomendable keep a backup of directories `rootCA` and `CA` due is where your CA certificates resides.
+This step mus be only runned once, and is highly recomendable keep a backup of directories `$HOME/fakecrypt/rootCA` and `$HOME/fakecrypt/CA` due is where your CA certificates resides.
 
-To create your CA Authority run script `createCA.sh`.
+First time you run `fakecrypt` will be promted that any CA was found and ask if you want create one.
 
-This script will ask for needed values to customize your CA.
-If you use enter, will be use de default values
+Default values are prompted, if you not set any value, default will be used.
 
 ```sh
-$>./createCA.sh
+$>./fakecrypt.sh
 
 Country Name [ME]:
 City Name [Podgorica]:
@@ -49,7 +50,7 @@ Once you run `createCA.sh` now you can create your domain certificates for all d
 For that run `domainCertificate.sh` this will pront for domain name, and all your files and certificates needed for this domain will be under `certs/domain-name.ext`. If any domain name are provided, the default domain `vcap.me` will be used.
 
 ```sh
-$>./createCertificate.sh
+$>./fakecrypt.sh
 Domain Name [vcap.me]:
 Generating a RSA private key
 ...
