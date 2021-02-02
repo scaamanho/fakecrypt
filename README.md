@@ -19,9 +19,9 @@ Generate a certificate for vcap.me [this domain points to 127.0.0.1]
 ### Install
 
 ```sh
-$> wget https://raw.githubusercontent.com/scaamanho/fakecrypt/main/fakecrypt
-$> chmod +x fakecrypt
-$> sudo mv fakecrypt /usr/local/bin
+$> wget https://raw.githubusercontent.com/scaamanho/fakecrypt/main/fakecrypt \
+&& chmod +x fakecrypt \
+&& sudo mv fakecrypt /usr/local/bin
 ```
 
 ### Execute
