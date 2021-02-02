@@ -16,7 +16,8 @@ TODO: Image
 
 ```sh
 $>wget https://raw.githubusercontent.com/scaamanho/fakecrypt/main/fakecrypt
-$>sudo mv fakecript /usr/local/bin
+$>chmod +x fakecrypt
+$>sudo mv fakecrypt /usr/local/bin
 $>fakecrypt
 ```
 
@@ -24,50 +25,66 @@ Response all questions and install generated certificates
 
 All your certificates files will be store in `$HOME/fakecrypt/` directory.
 
-## Create your own CA
+## Manage your own CA
+At first run FakeCrypt check if exist a Certified Authority, and ask you for cretion values, you can press enter and use defaults or set your our owns.
 
-This step mus be only runned once, and is highly recomendable keep a backup of directories `$HOME/fakecrypt/rootCA` and `$HOME/fakecrypt/CA` due is where your CA certificates resides.
+FakeCrypt provide some commands to inspect, export and delete (use with carefull) CA authorities
 
-First time you run `fakecrypt` will be promted that any CA was found and ask if you want create one.
+### View Root CA certificate
 
-Default values are prompted, if you not set any value, default will be used.
+```bash
+$>fakecrypt root view
+Root CA Info:
+------------------------------------------------------------------
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            5f:3c:fd:28:17:36:36:63:da:74:dc:2f:22:5a:c7:6b:52:59:5a:94
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C = CA, L = Alert, O = FakeCrypt Root CA, CN = FakeCrypt Root CA
+        Validity
+            Not Before: Feb  2 13:54:53 2021 GMT
+            Not After : Jan  9 13:54:53 2121 GMT
+        Subject: C = CA, L = Alert, O = FakeCrypt Root CA, CN = FakeCrypt Root CA
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (3072 bit)
+                Modulus:
+                    00:9b:e9:0a:be:c1:88:19:bc:52:66:22:ad:97:54:
+....
+```
+### Export Root CA Certificate
 
-You can rerun CA creation executing:
+You can get rootCA.crt form your filesystem, but you can also generate a copy with the command
+
+```bash
+$>fakecrypt root crt > my_rootCA.crt
+```
+
+### Intermediate Authority
+
+You also can show, inspect, export and reset Intermediate Authority with the commands:
 
 ```sh
-$>fakecrypt ca create
-
-Country Name [ME]:
-City Name [Podgorica]:
-Root Common Name [Fake Root CA]:
-CA Organization Name [Fake Networks]:
-CA Name [Signatures Department]:
-CA Common Name [Fake Networks CA]:
-
-Creating ROOT CA CERTIFICATE
-....
-Creating INTERMEDIATE CA CERTIFICATE
-....
-
+$>fakecrypt ca view
+$>fakecrypt ca crt > myCA.crt
+$>fakecrypt ca pem > myCA.pem
+$>fakecrypt ca reset
 ```
 
 ## Sing your own domains certificates
 
-Once you run `createCA.sh` now you can create your domain certificates for all domains that you want.
-
-For that run `domainCertificate.sh` this will pront for domain name, and all your files and certificates needed for this domain will be under `certs/domain-name.ext`. If any domain name are provided, the default domain `vcap.me` will be used.
+FakeCrypt provide a list of commands to create, manage and export domain certificates
 
 ```sh
-$>fakecrypt
-Domain Name [vcap.me]:
-Generating a RSA private key
-...
-                DNS:*.vcap.me, DNS:*.m.vcap.me, DNS:vcap.me
-All cerficate files are in certs/vcap.me folder
+$>fakecrypt cert create domain.ext
+$>fakecrypt cert list
+$>fakecrypt cert view domain.ext
+$>fakecrypt cert crt domain.ext > my_domain.crt
+$>fakecrypt cert pem domain.ext > my_domain.pem
+$>fakecrypt cert key domain.ext > my_domain.key
 ```
-
-This script allow domain name use subdomains
-
 
 ### Domains that point to 127.0.0.1
 

@@ -312,7 +312,7 @@ function _sumary ()
 #         MAIN         #
 ########################
 
-_header
+# _header
 
 # TODO: Check CA.
 
@@ -334,9 +334,7 @@ then
     echo "* crt  Show Root CA raw crt data"
     echo "* view Show Root CA certificate"
   fi
-
   exit 0
-
 elif [ "${1}" = "ca" ];
 then
 
