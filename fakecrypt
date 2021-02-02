@@ -8,12 +8,12 @@ CA_DIR=${APP_DIR}/fakecrypt/CA
 CERTS_DIR=${APP_DIR}/fakecrypt/certs
 
 # DEFAULT CERTIFICATE VALUES
-countryName="ME"
-localityName="Podgorica"
-commonName="Fake Root CA"
-caOrganizationName="Fake Networks"
-caOrganizationalUnitName="Signatures Department"
-caCommonName="Fake Networks CA"
+countryName="CA"
+localityName="Alert"
+commonName="FakeCrypt Root CA"
+caOrganizationName="FakeCrypt"
+caOrganizationalUnitName="FakeCrypt Signatures"
+caCommonName="FakeCrypt CA"
 
 function create_root_cfg()
 {
@@ -265,13 +265,22 @@ function create_cert()
   cat ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt ${CA_DIR}/CA.pem >${CERTS_DIR}/${DOMAIN}/${DOMAIN}.pem
 
   # check what information the certificate contains
-  openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout
+  
+  read_value "Show Certificate Info (y/N)?" "N"
+  if [ "${READ_VALUE}" = "y" ]
+  then 
+    echo
+    echo "Certificate Info:"
+    echo "------------------------------------------------------------------"
+    openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout  
+  fi
+  
 
   # make sure that the DNS entries for SAN are correct
+  echo 
+  echo "DNS registered in Domain Certificate:"
+  echo "------------------------------------------------------------------"
   openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout | grep DNS
-
-  echo "All CA certificate files are in ${CA_DIR} folder [CA.pem(CA.crt+rootCA.crt)]"
-  echo "All Server cerficate files are in ${CERTS_DIR}/${DOMAIN} folder"
 }
 
 function _header ()
@@ -279,7 +288,8 @@ function _header ()
   echo "#############################"
   echo "#         FakeCrypt         #"
   echo "#############################"
-  echo " Set domain name to create certificate, import CA certificate and enjoy your thrusted domain"
+  #echo " Set domain name to create certificate, import CA certificate and enjoy your thrusted domain"
+  echo
   #TODO:
 }
 
@@ -295,3 +305,8 @@ then
   exit 0
 fi
 create_cert
+
+echo "------------------------------------------------------------------"
+echo "rootCA certificate files are in ${ROOT_CA_DIR} folder [rootCA.crt]"
+echo "All Server cerficate files are in ${CERTS_DIR}/${DOMAIN} folder"
+echo "------------------------------------------------------------------"
