@@ -81,6 +81,7 @@ If you need customize your own domains with multiple machines in a local network
 * <https://my.freenom.com/>
 * <https://www.dynu.com/>
 * <https://www.duckdns.org/> - Can't use subdomains feature.
+* [*.][host_ip].xip.io
 
 and point them to your machines.
 
@@ -102,6 +103,7 @@ and point them to your machines.
 [TODO:]
 ### NGINX
 
+### Traefik
 
 
 ## How to customize FakeCrypt
