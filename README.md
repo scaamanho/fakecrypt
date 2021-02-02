@@ -1,11 +1,12 @@
 # FakeCrypt
+![FakeCrypt Logo](assets/logo250.png)
 Become in Certificate Authority and sing your own valid certificates
 
 ## Why Become in your own CA
 
-Most of times you need a valid certificate for your all your machines in your local network, and you are tired of deal with invalid certificates showed in connections or browsers when you are testing in your local enviroment or even in your local network.
+Sometimes you need several certificates for your machines , and you are tired of deal with invalid certificates exceptions, showed in connections or browsers when you are testing a local enviroment with SSL/HTTPS or even in your local network.
 
-Becoming in your own CA, you can sing several certificates for your diferents domains, and you only need import your your `CA.pem` or your `CA.crt` file in your system to validate all your signed certificates.
+Becoming in your own CA, you can sing several certificates for your diferents host/domains, and you only need import your your `rootCA.crt` file in your system to validate all your signed certificates.
 
 TODO: Image
 
@@ -13,10 +14,14 @@ TODO: Image
 ## TL;TR
 
 ```sh
-./fakecrypt.sh
+$>wget https://raw.githubusercontent.com/scaamanho/fakecrypt/main/fakecrypt
+$>sudo mv fakecript /usr/local/bin
+$>fakecrypt
 ```
 
-All your certificates files will be store in `$HOME/fakecrypt/` directory
+Response all questions and install generated certificates
+
+All your certificates files will be store in `$HOME/fakecrypt/` directory.
 
 ## Create your own CA
 
@@ -26,8 +31,10 @@ First time you run `fakecrypt` will be promted that any CA was found and ask if 
 
 Default values are prompted, if you not set any value, default will be used.
 
+You can rerun CA creation executing:
+
 ```sh
-$>./fakecrypt.sh
+$>fakecrypt ca create
 
 Country Name [ME]:
 City Name [Podgorica]:
@@ -50,7 +57,7 @@ Once you run `createCA.sh` now you can create your domain certificates for all d
 For that run `domainCertificate.sh` this will pront for domain name, and all your files and certificates needed for this domain will be under `certs/domain-name.ext`. If any domain name are provided, the default domain `vcap.me` will be used.
 
 ```sh
-$>./fakecrypt.sh
+$>fakecrypt
 Domain Name [vcap.me]:
 Generating a RSA private key
 ...
@@ -89,10 +96,48 @@ and point them to your machines.
 [TODO:]
 ### Debian/Ubuntu
 
+```sh
+sudo mkdir /usr/local/share/ca-certificates/extra
+sudo cp rootCA.crt /usr/local/share/ca-certificates/extra/
+sudo update-ca-certificates
+```
+
 ### CentOS/RHEL
+
+```sh
+cp rootCA.crt /etc/pki/ca-trust/source/anchors/
+update-ca-trust extract
+```
 
 ### Windows
 
+#### Chrome/Edge/IE
+
+Chrome, Edge, and Internet Explorer use the Windows certificate store.
+
+To import the certificate to the Windows certificate store, follow these steps:
+
+Copy the rootCA.crt certificate file to the computer.
+Double-click the certificate file.
+Select Install Certificate.
+Select Local Machine and then Next.
+Select Place all certificates in the following store, and then Browse.
+Select Trusted Root Certification Authorities and then Next.
+Select Finish.
+
+#### Firefox
+
+Firefox uses its own certificate manager.
+
+Copy the rootCA.crt certificate file to the computer.
+Open Tools > Options.
+Select Privacy & Security and browse to Certificates.
+Select View Certificates.
+Go to the Authorities tab.
+Select Import.
+Browse to the rootCA.crt certificate file and select Open.
+Select Trust this CA to identify websites.
+Select OK.
 ### Android
 
 ### Mac
@@ -113,3 +158,10 @@ and point them to your machines.
 ## Backup your data
 
 [TODO:]
+
+
+
+## References
+
+[Creating TLS/SSL certificates for ThreatShield](https://help.f-secure.com/product.html#business/threatshield/latest/en/concept_E8E015C30E05412190F22C5DFC36AC0B-threatshield-latest-en)
+[How to Create Your Own SSL Certificate Authority for Local HTTPS Development](https://deliciousbrains.com/ssl-certificate-authority-for-local-https-development/)
