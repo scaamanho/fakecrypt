@@ -277,6 +277,18 @@ function create_cert()
   openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout | grep DNS
 }
 
+function view_ca ()
+{
+  echo
+  echo "Root CA Info:"
+  echo "------------------------------------------------------------------"
+  openssl x509 -in ${ROOT_CA_DIR}/rootCA.crt -text -noout  
+  echo
+  echo "Intermediate CA Info:"
+  echo "------------------------------------------------------------------"
+  openssl x509 -in ${CA_DIR}/CA.crt -text -noout  
+}
+
 function _header ()
 {
   echo "#############################"
@@ -301,10 +313,111 @@ function _sumary ()
 ########################
 
 _header
-if [ "${1}" = "ca" ]
+
+# TODO: Check CA.
+
+if [ "${1}" = "root" ];
 then
-  create_ca
+
+  if [ "${2}" = "crt" ];
+  then
+    cat ${ROOT_CA_DIR}/rootCA.crt
+  elif  [ "${2}" = "view" ];
+  then
+    echo
+    echo "Root CA Info:"
+    echo "------------------------------------------------------------------"
+    openssl x509 -in ${ROOT_CA_DIR}/rootCA.crt -text -noout
+  else    
+    echo "usage: fakecript root [command]"
+    echo "avaliable commands:"
+    echo "* crt  Show Root CA raw crt data"
+    echo "* view Show Root CA certificate"
+  fi
+
+  exit 0
+
+elif [ "${1}" = "ca" ];
+then
+
+  if [ "${2}" = "reset" ];
+  then
+    create_ca    
+  elif [ "${2}" = "crt" ];
+  then
+    cat ${CA_DIR}/CA.crt
+  elif [ "${2}" = "pem" ];
+  then
+    cat ${CA_DIR}/CA.pem
+  elif [ "${2}" = "view" ];
+  then
+    echo
+    echo "Intermediate CA Info:"
+    echo "------------------------------------------------------------------"
+    openssl x509 -in ${CA_DIR}/CA.crt -text -noout
+  else    
+    echo "usage: fakecript ca [command]"
+    echo "avaliable commands:"
+    echo "* reset  Remove all CA and signed certificates form system. Use with caution"
+    echo "* crt  Show Intermediate CA raw crt data"
+    echo "* pem  Show Intermediate CA raw pem data"
+    echo "* view  Show Intermediate CA certificate"
+  fi
+
+  exit 0
+
+elif [ "${1}" = "cert" ];
+then
+  DOMAIN=${3}
+
+  if [ "${2}" = "create" ];
+  then  
+    create_cert
+    _sumary   
+  elif [ "${2}" = "list" ];
+  then
+    echo "Avaliable Domain Certificates"
+    echo "------------------------------------------------------------------"
+    cd ${CERTS_DIR}
+    for i in $(ls -d */); do echo "* ${i%%/}"; done
+  elif [ "${2}" = "view" ];
+  then    
+    echo
+    echo "${DOMAIN} Certificate Info:"
+    echo "------------------------------------------------------------------"
+    openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout
+  elif [ "${2}" = "crt" ];
+  then    
+    cat ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt
+  elif [ "${2}" = "pem" ];
+  then    
+    cat ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.pem
+  elif [ "${2}" = "key" ];
+  then    
+    cat ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.key
+  else    
+    echo "usage: fakecript cert [command] [domain.name]"
+    echo "avaliable commands:"
+    echo "* create [domain]  Create a new domain certificate"
+    echo "* list  List all domain certificates"
+    echo "* view [domain] Show domain certificate"
+    echo "* crt [domain] Show domain raw crt data"
+    echo "* pem [domain] Show domain raw pem data"
+    echo "* key [domain] Show domain raw key data"
+  fi
+  exit 0
+
+elif [ "${1}" = "--help" ];
+then
+  echo "usage: fakecript [option] [command] [parameter]"
+  echo "avaliable options:"
+  echo "* root  manage Root CA Info"
+  echo "* ca  manage Intermediate CA Info"
+  echo "* cert  manage host certificates"
+  echo "use 'fakecrypt [option] --help' to see options commands"
   exit 0
 fi
+
+# DEFAULT
 create_cert
 _sumary
