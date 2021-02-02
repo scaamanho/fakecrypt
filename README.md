@@ -14,16 +14,40 @@ TODO: Image
 
 ## TL;TR
 
+Generate a certificate for vcap.me [this domain points to 127.0.0.1]
+
+### Install
+
 ```sh
-$>wget https://raw.githubusercontent.com/scaamanho/fakecrypt/main/fakecrypt
-$>chmod +x fakecrypt
-$>sudo mv fakecrypt /usr/local/bin
-$>fakecrypt
+$> wget https://raw.githubusercontent.com/scaamanho/fakecrypt/main/fakecrypt
+$> chmod +x fakecrypt
+$> sudo mv fakecrypt /usr/local/bin
 ```
 
-Response all questions and install generated certificates
+### Execute
+
+Use enter to use default values
+
+```sh
+$> fakecrypt
+```
 
 All your certificates files will be store in `$HOME/fakecrypt/` directory.
+
+### Export CA.crt and domain certificates and key
+
+```sh
+$> fakecrypt root crt > fakecryptCA.crt
+$> fakecrypt cert crt vcap.me > vcap.me.crt
+$> fakecrypt cert pem vcap.me > vcap.me.pem
+$> fakecrypt cert key vcap.me > vcap.me.key
+```
+
+### Help
+
+```sh
+$> fakecrypt --help
+```
 
 ## Manage your own CA
 At first run FakeCrypt check if exist a Certified Authority, and ask you for cretion values, you can press enter and use defaults or set your our owns.
@@ -62,6 +86,14 @@ You can get rootCA.crt form your filesystem, but you can also generate a copy wi
 $>fakecrypt root crt > my_rootCA.crt
 ```
 
+### Reset Root CA Certificate
+
+Use with careful. Delete all created authorities and signed certificates and create a new Root and Intermediate authority
+
+```bash
+$>fakecrypt root reset
+```
+
 ### Intermediate Authority
 
 You also can show, inspect, export and reset Intermediate Authority with the commands:
@@ -70,10 +102,9 @@ You also can show, inspect, export and reset Intermediate Authority with the com
 $>fakecrypt ca view
 $>fakecrypt ca crt > myCA.crt
 $>fakecrypt ca pem > myCA.pem
-$>fakecrypt ca reset
 ```
 
-## Sing your own domains certificates
+## Manage your own domains certificates
 
 FakeCrypt provide a list of commands to create, manage and export domain certificates
 

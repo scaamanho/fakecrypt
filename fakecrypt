@@ -154,11 +154,19 @@ EOF
 # $1 text to show - $2 default value
 function read_value ()
 {
-  read -p "${1} [${2}]" READ_VALUE
+  read -p "${1} [${2}]: " READ_VALUE
   if [ "${READ_VALUE}" = "" ]
   then
     READ_VALUE=$2
   fi
+}
+
+
+function paint_header ()
+{
+  echo
+  echo "${1}"
+  echo "------------------------------------------------------------------"
 }
 
 function create_ca ()
@@ -166,9 +174,9 @@ function create_ca ()
   # Check if exist previous CA
   FILE=${ROOT_CA_DIR}/private/rootCA.key
   if [ -f "$FILE" ]; then
-    read -p "A previous CA allreay exist. This will delete previous CA. Continue? (y/N)" overwrite
+    read -p "A previous CA allreay exist. This will delete previous CA. Continue? (y/N): " READ_VALUE
 
-    if [ "$overwrite" = "y" ]
+    if [ "${READ_VALUE}" = "y" ]
     then
       rm -rf ${CA_DIR}
       rm -rf ${ROOT_CA_DIR}
@@ -209,43 +217,49 @@ function create_ca ()
   create_ca_cfg
 
   # CREATE ROOT CA CERTIFICATE
-  echo "Creating ROOT CA CERTIFICATE"
-  echo "------------------------------------------------------------------"
   openssl req -x509 -sha256 -days 36500 -newkey rsa:3072 \
       -config ${ROOT_CA_DIR}/root-csr.conf -keyout ${ROOT_CA_DIR}/private/rootCA.key \
       -out ${ROOT_CA_DIR}/rootCA.crt
   # SHOW CERTIFICATE CREATED
   openssl x509 -in ${ROOT_CA_DIR}/rootCA.crt -text -noout   
-  echo "Creating INTERMEDIATE CA CERTIFICATE"
-  echo "------------------------------------------------------------------"
   #  create a certificate signing request
   openssl req -new -config ${CA_DIR}/CA-csr.conf -out ${CA_DIR}/CA.csr \
           -keyout ${CA_DIR}/private/CA.key
   # sign the certificate in the request with the root certificate
-  openssl ca -config ${CA_DIR}/rootCA.conf -days 36500 -create_serial \
+  openssl ca -batch -config ${CA_DIR}/rootCA.conf -days 36500 -create_serial \
       -in ${CA_DIR}/CA.csr -out ${CA_DIR}/CA.crt -extensions ca_ext -notext
   # Link certificates together to have the certificate chain in one file
   cat ${CA_DIR}/CA.crt ${ROOT_CA_DIR}/rootCA.crt >${CA_DIR}/CA.pem
 }
 
-
-function create_cert()
+function check_ca()
 {
-  # Read Domain Name
-  read_value "Domain Name" "${DOMAIN}"
-  DOMAIN=${READ_VALUE}
-
   # Check if exist CA 
   FILE=${CERTS_DIR}/CA.conf
   if [ ! -f "$FILE" ]; then
-    read -p "CA Authority don't exist. Create a new One (Y/n)" overwrite
-    if [ "$overwrite" = "n" ]
+    read -p "CA Authority don't exist. Create a new One? (Y/n): " READ_VALUE
+    if [ "${READ_VALUE}" = "n" ]
     then
-      echo "Can't Create ${DOMAIN} certificate."
+      echo "You need create a CA Authority first."
       exit 0
     else
       create_ca
     fi
+  fi
+}
+
+
+function create_cert()
+{
+  
+
+  # Read Domain Name
+  if [ -z "${1}" ]
+  then
+    read_value "Domain Name" "${DOMAIN}"
+    DOMAIN=${READ_VALUE}
+  else
+    DOMAIN=${1}
   fi
 
   # Create directory and config file
@@ -255,66 +269,29 @@ function create_cert()
   openssl req -new -config ${CERTS_DIR}/${DOMAIN}/${DOMAIN}-csr.conf -out ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.csr \
           -keyout ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.key
   # sign the server certificate in the request with the intermediate CA certificate
-  openssl ca -config ${CERTS_DIR}/CA.conf -days 36500 -create_serial \
+  openssl ca -batch -config ${CERTS_DIR}/CA.conf -days 36500 -create_serial \
       -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.csr -out ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -extensions leaf_ext -notext
   # Link certificates together to have the certificate chain in one file
   cat ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt ${CA_DIR}/CA.pem >${CERTS_DIR}/${DOMAIN}/${DOMAIN}.pem
 
-  # check what information the certificate contains
-  read_value "Show Certificate Info (y/N)?" "N"
-  if [ "${READ_VALUE}" = "y" ]
-  then 
-    echo
-    echo "Certificate Info:"
-    echo "------------------------------------------------------------------"
-    openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout  
-  fi
-  
   # make sure that the DNS entries for SAN are correct
-  echo 
-  echo "DNS registered in Domain Certificate:"
-  echo "------------------------------------------------------------------"
+  
+  paint_header "DNS registered in Domain Certificate"
   openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout | grep DNS
-}
-
-function view_ca ()
-{
-  echo
-  echo "Root CA Info:"
-  echo "------------------------------------------------------------------"
-  openssl x509 -in ${ROOT_CA_DIR}/rootCA.crt -text -noout  
-  echo
-  echo "Intermediate CA Info:"
-  echo "------------------------------------------------------------------"
-  openssl x509 -in ${CA_DIR}/CA.crt -text -noout  
-}
-
-function _header ()
-{
-  echo "#############################"
-  echo "#         FakeCrypt         #"
-  echo "#############################"
-  #echo " Set domain name to create certificate, import CA certificate and enjoy your thrusted domain"
-  echo
-  #TODO: Customizar Header
-}
-
-function _sumary ()
-{
-  # Sumary
-  echo "------------------------------------------------------------------"
-  echo "rootCA certificate files are in ${ROOT_CA_DIR} folder [rootCA.crt]"
-  echo "All Server cerficate files are in ${CERTS_DIR}/${DOMAIN} folder"
-  echo "------------------------------------------------------------------"
+  paint_header "use: 'fakecrypt cert view ${DOMAIN}' to view domain certificate"
 }
 
 ########################
 #         MAIN         #
 ########################
 
-# _header
+check_ca
 
-# TODO: Check CA.
+if [ -z "${1}" ]
+then
+  create_cert
+  exit 0
+fi
 
 if [ "${1}" = "root" ];
 then
@@ -324,24 +301,22 @@ then
     cat ${ROOT_CA_DIR}/rootCA.crt
   elif  [ "${2}" = "view" ];
   then
-    echo
-    echo "Root CA Info:"
-    echo "------------------------------------------------------------------"
+    paint_header "Root CA Certificate Info"
     openssl x509 -in ${ROOT_CA_DIR}/rootCA.crt -text -noout
+  elif  [ "${2}" = "reset" ];
+  then
+    create_ca 
   else    
     echo "usage: fakecript root [command]"
     echo "avaliable commands:"
     echo "* crt  Show Root CA raw crt data"
     echo "* view Show Root CA certificate"
+    echo "* reset  Remove Root CA and signed certificates form system. Use with caution"
   fi
-  exit 0
 elif [ "${1}" = "ca" ];
 then
 
-  if [ "${2}" = "reset" ];
-  then
-    create_ca    
-  elif [ "${2}" = "crt" ];
+  if [ "${2}" = "crt" ];
   then
     cat ${CA_DIR}/CA.crt
   elif [ "${2}" = "pem" ];
@@ -349,40 +324,29 @@ then
     cat ${CA_DIR}/CA.pem
   elif [ "${2}" = "view" ];
   then
-    echo
-    echo "Intermediate CA Info:"
-    echo "------------------------------------------------------------------"
+    paint_header "Intermediate CA Certificate Info"
     openssl x509 -in ${CA_DIR}/CA.crt -text -noout
   else    
     echo "usage: fakecript ca [command]"
     echo "avaliable commands:"
-    echo "* reset  Remove all CA and signed certificates form system. Use with caution"
     echo "* crt  Show Intermediate CA raw crt data"
     echo "* pem  Show Intermediate CA raw pem data"
     echo "* view  Show Intermediate CA certificate"
   fi
-
-  exit 0
-
 elif [ "${1}" = "cert" ];
 then
   DOMAIN=${3}
-
   if [ "${2}" = "create" ];
   then  
-    create_cert
-    _sumary   
+    create_cert ${3} 
   elif [ "${2}" = "list" ];
   then
-    echo "Avaliable Domain Certificates"
-    echo "------------------------------------------------------------------"
+    paint_header "Avaliable Domain Certificates"
     cd ${CERTS_DIR}
     for i in $(ls -d */); do echo "* ${i%%/}"; done
   elif [ "${2}" = "view" ];
   then    
-    echo
-    echo "${DOMAIN} Certificate Info:"
-    echo "------------------------------------------------------------------"
+    paint_header "${DOMAIN} Certificate Info"
     openssl x509 -in ${CERTS_DIR}/${DOMAIN}/${DOMAIN}.crt -text -noout
   elif [ "${2}" = "crt" ];
   then    
@@ -403,8 +367,6 @@ then
     echo "* pem [domain] Show domain raw pem data"
     echo "* key [domain] Show domain raw key data"
   fi
-  exit 0
-
 elif [ "${1}" = "--help" ];
 then
   echo "usage: fakecript [option] [command] [parameter]"
@@ -413,9 +375,4 @@ then
   echo "* ca  manage Intermediate CA Info"
   echo "* cert  manage host certificates"
   echo "use 'fakecrypt [option] --help' to see options commands"
-  exit 0
 fi
-
-# DEFAULT
-create_cert
-_sumary
