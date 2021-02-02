@@ -43,10 +43,15 @@ $> fakecrypt cert pem vcap.me > vcap.me.pem
 $> fakecrypt cert key vcap.me > vcap.me.key
 ```
 
+import `fakecryptCA.crt` in your system and set `vcap.me.crt` and `vcap.me.key` in your server
+
 ### Help
 
 ```sh
 $> fakecrypt --help
+$> fakecrypt root --help
+$> fakecrypt ca --help
+$> fakecrypt cert --help
 ```
 
 ## Manage your own CA
@@ -88,7 +93,7 @@ $>fakecrypt root crt > my_rootCA.crt
 
 ### Reset Root CA Certificate
 
-Use with careful. Delete all created authorities and signed certificates and create a new Root and Intermediate authority
+**Use with careful**. Delete all created authorities and signed certificates and create a new Root and Intermediate authority
 
 ```bash
 $>fakecrypt root reset
